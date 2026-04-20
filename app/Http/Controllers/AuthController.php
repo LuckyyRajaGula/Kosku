@@ -40,6 +40,10 @@ class AuthController extends Controller
             return back()->withInput(['username' => $validated['username']])->with('error', 'Username atau password salah.');
         }
 
+        if (($user->status_akun ?? 'Aktif') !== 'Aktif') {
+            return back()->withInput(['username' => $validated['username']])->with('error', 'Akun Anda nonaktif. Hubungi pemilik.');
+        }
+
         $request->session()->put('kosku_user', [
             'id' => $user->id_user,
             'nama' => $user->nama,

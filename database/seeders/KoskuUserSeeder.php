@@ -21,6 +21,7 @@ class KoskuUserSeeder extends Seeder
                 'password' => Hash::make('pemilik123'),
                 'no_telpon' => '081234567891',
                 'role' => 'pemilik',
+                'status_akun' => 'Aktif',
             ],
             [
                 'nama' => 'Siti Nurhaliza',
@@ -29,6 +30,7 @@ class KoskuUserSeeder extends Seeder
                 'password' => Hash::make('pengelola123'),
                 'no_telpon' => '081234567892',
                 'role' => 'pengelola',
+                'status_akun' => 'Aktif',
             ],
             [
                 'nama' => 'Ahmad Wijaya',
@@ -37,13 +39,14 @@ class KoskuUserSeeder extends Seeder
                 'password' => Hash::make('penyewa123'),
                 'no_telpon' => '081234567893',
                 'role' => 'penyewa',
+                'status_akun' => 'Aktif',
             ],
         ];
 
         DB::table('user')->upsert(
             $users,
             ['email'],
-            ['nama', 'username', 'password', 'no_telpon', 'role']
+            ['nama', 'username', 'password', 'no_telpon', 'role', 'status_akun']
         );
     }
 }

@@ -24,6 +24,7 @@
                 ['route' => 'pembayaran', 'label' => 'Pembayaran', 'icon' => 'bi-credit-card'],
                 ['route' => 'komplain', 'label' => 'Komplain', 'icon' => 'bi-chat-left-text'],
                 ['route' => 'laporan', 'label' => 'Laporan Keuangan', 'icon' => 'bi-graph-up-arrow'],
+                ['route' => 'pengguna', 'label' => 'Manajemen Pengguna', 'icon' => 'bi-person-gear'],
             ],
             'pengelola' => [
                 ['route' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'bi-speedometer2'],

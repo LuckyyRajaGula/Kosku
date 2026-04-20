@@ -18,7 +18,13 @@ Route::middleware('kosku.auth')->group(function (): void {
     Route::put('/kamar/{idKamar}', [DashboardController::class, 'updateKamar'])->name('kamar.update');
     Route::delete('/kamar/{idKamar}', [DashboardController::class, 'deleteKamar'])->name('kamar.delete');
 
-    Route::get('/penyewa', [DashboardController::class, 'placeholder'])->defaults('module', 'penyewa')->name('penyewa');
+    Route::get('/manajemen-pengguna', [DashboardController::class, 'pengguna'])->name('pengguna');
+    Route::post('/manajemen-pengguna', [DashboardController::class, 'storePengelola'])->name('pengguna.store');
+    Route::put('/manajemen-pengguna/{idUser}', [DashboardController::class, 'updatePengelola'])->name('pengguna.update');
+    Route::patch('/manajemen-pengguna/{idUser}/status', [DashboardController::class, 'updateStatusPengelola'])->name('pengguna.status');
+
+    Route::get('/penyewa', [DashboardController::class, 'penyewa'])->name('penyewa');
+    Route::post('/penyewa', [DashboardController::class, 'storePenyewa'])->name('penyewa.store');
     Route::get('/pembayaran', [DashboardController::class, 'placeholder'])->defaults('module', 'pembayaran')->name('pembayaran');
     Route::get('/komplain', [DashboardController::class, 'placeholder'])->defaults('module', 'komplain')->name('komplain');
     Route::get('/laporan', [DashboardController::class, 'placeholder'])->defaults('module', 'laporan')->name('laporan');

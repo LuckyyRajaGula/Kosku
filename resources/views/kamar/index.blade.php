@@ -7,6 +7,10 @@
     <div class="alert success">{{ session('success') }}</div>
 @endif
 
+@if (session('error'))
+    <div class="alert error">{{ session('error') }}</div>
+@endif
+
 <section class="page-header">
     <div>
         <h2>Manajemen Kamar</h2>
