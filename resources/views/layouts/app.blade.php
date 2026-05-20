@@ -35,6 +35,8 @@
             ],
             'penyewa' => [
                 ['route' => 'dashboard', 'label' => 'Dashboard Saya', 'icon' => 'bi-house-door'],
+                ['route' => 'pembayaran', 'label' => 'Pembayaran', 'icon' => 'bi-credit-card'],
+                ['route' => 'komplain', 'label' => 'Komplain', 'icon' => 'bi-chat-left-text'],
             ],
         ];
 

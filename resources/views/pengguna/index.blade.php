@@ -20,7 +20,7 @@
 
 <section class="filter-panel">
     <h3 class="section-title" style="margin-top:0;">Tambah Akun Pengelola</h3>
-    <form method="POST" action="{{ route('pengguna.store') }}" class="filter-grid">
+    <form method="POST" action="{{ route('pengguna.store') }}" class="form-grid">
         @csrf
         <div>
             <label for="nama">Nama</label>
@@ -42,8 +42,8 @@
             <label for="no_telpon">No Telpon</label>
             <input id="no_telpon" type="text" name="no_telpon" value="{{ old('no_telpon') }}">
         </div>
-        <div class="actions">
-            <button type="submit" class="primary-btn">Simpan Akun</button>
+        <div class="actions" style="grid-column: span 3;">
+            <button type="submit" class="primary-btn" style="width: auto; min-width: 160px;">Simpan Akun</button>
         </div>
     </form>
 </section>

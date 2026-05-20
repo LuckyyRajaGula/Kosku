@@ -32,8 +32,8 @@
         </article>
         <article class="stat-card">
             <p>Perlu Perhatian</p>
-            <h3>{{ $totalMaintenance }}</h3>
-            <small>Kamar maintenance</small>
+            <h3>{{ $totalMaintenance + $komplainAktif }}</h3>
+            <small>{{ $totalMaintenance }} maintenance, {{ $komplainAktif }} komplain</small>
         </article>
     </section>
 
@@ -70,7 +70,21 @@
             <i class="bi bi-chat-left-text"></i>
             <div>
                 <strong>Komplain Aktif</strong>
-                <small>Tinjau komplain terbaru penyewa</small>
+                <small>{{ $komplainAktif }} komplain menunggu penanganan</small>
+            </div>
+        </a>
+        <a href="{{ route('pembayaran') }}" class="quick-action">
+            <i class="bi bi-credit-card"></i>
+            <div>
+                <strong>Pembayaran</strong>
+                <small>{{ $pembayaranPending }} tagihan belum dibayar</small>
+            </div>
+        </a>
+        <a href="{{ route('laporan') }}" class="quick-action">
+            <i class="bi bi-graph-up-arrow"></i>
+            <div>
+                <strong>Laporan Keuangan</strong>
+                <small>Analisis pendapatan</small>
             </div>
         </a>
     </section>
@@ -84,8 +98,8 @@
     <section class="stats-grid">
         <article class="stat-card"><p>Kamar Kosong</p><h3>{{ $totalKosong }}</h3><small>Siap disewakan</small></article>
         <article class="stat-card"><p>Penyewa Aktif</p><h3>{{ $totalTerisi }}</h3><small>Data terhubung kamar</small></article>
-        <article class="stat-card"><p>Pembayaran Pending</p><h3>3</h3><small>Perlu tindak lanjut</small></article>
-        <article class="stat-card"><p>Komplain Aktif</p><h3>4</h3><small>Perlu ditangani</small></article>
+        <article class="stat-card"><p>Pembayaran Pending</p><h3>{{ $pembayaranPending }}</h3><small>Perlu tindak lanjut</small></article>
+        <article class="stat-card"><p>Komplain Aktif</p><h3>{{ $komplainAktif }}</h3><small>Perlu ditangani</small></article>
     </section>
 
     <h3 class="section-title">Aksi Cepat</h3>
@@ -96,34 +110,82 @@
         <a href="{{ route('komplain') }}" class="quick-action"><i class="bi bi-chat-left-text"></i><div><strong>Tangani Komplain</strong></div></a>
     </section>
 @else
+    {{-- PENYEWA DASHBOARD --}}
     <section class="hero hero-tenant">
         <p>Halo,</p>
         <h2>{{ $user['nama'] }}</h2>
-        <small>Kamar A101 · KosKu Dago</small>
+        @if ($tenantData)
+            <small>Kamar {{ $tenantData->no_kamar ?: '-' }} · KosKu</small>
+        @else
+            <small>Selamat datang di KosKu</small>
+        @endif
     </section>
 
-    <section class="tenant-card">
-        <header>
-            <strong>Detail Kamar</strong>
-            <span>Aktif</span>
-        </header>
-        <div class="tenant-grid">
-            <div><small>Properti</small><p>KosKu Dago</p></div>
-            <div><small>Nomor Kamar</small><p>A101</p></div>
-            <div><small>Kontrak Mulai</small><p>1 Jan 2026</p></div>
-            <div><small>Kontrak Berakhir</small><p>1 Jan 2027</p></div>
-        </div>
-    </section>
+    @if ($tenantData)
+        <section class="tenant-card">
+            <header>
+                <strong>Detail Kamar</strong>
+                <span>● Aktif</span>
+            </header>
+            <div class="tenant-grid">
+                <div><small>Nomor Kamar</small><p>{{ $tenantData->no_kamar ?: '-' }}</p></div>
+                <div><small>Tipe Kamar</small><p>{{ $tenantData->tipe_kamar ?: '-' }}</p></div>
+                <div><small>Kontrak Mulai</small><p>{{ $tenantData->tanggal_masuk ? \Carbon\Carbon::parse($tenantData->tanggal_masuk)->translatedFormat('d M Y') : '-' }}</p></div>
+                <div><small>Kontrak Berakhir</small><p>{{ $tenantData->tanggal_keluar ? \Carbon\Carbon::parse($tenantData->tanggal_keluar)->translatedFormat('d M Y') : '-' }}</p></div>
+            </div>
+        </section>
 
-    <section class="tenant-card bill">
-        <header>
-            <strong>Tagihan Bulan Ini</strong>
-            <span class="warn">Belum Bayar</span>
-        </header>
-        <div class="bill-row">
-            <div><small>Jatuh Tempo</small><p>20 April 2026</p></div>
-            <div><small>Nominal</small><p>Rp 1.500.000</p></div>
-        </div>
-    </section>
+        @if ($tenantBill)
+            <section class="tenant-card bill">
+                <header>
+                    <strong>Tagihan Terbaru</strong>
+                    <span class="{{ $tenantBill->status === 'Lunas' ? '' : 'warn' }}">{{ $tenantBill->status }}</span>
+                </header>
+                <div class="bill-row">
+                    <div><small>Periode</small><p>{{ $tenantBill->periode }}</p></div>
+                    <div><small>Jatuh Tempo</small><p>{{ $tenantBill->tanggal_jatuh_tempo }}</p></div>
+                    <div><small>Nominal</small><p>Rp {{ number_format($tenantBill->nominal, 0, ',', '.') }}</p></div>
+                </div>
+                @if ($tenantBill->status !== 'Lunas')
+                    <div style="margin-top:12px;padding:10px;background:#fef3c7;border:1px solid #fbbf24;border-radius:12px;">
+                        <p style="font-size:13px;color:#92400e;">⚠️ Segera lakukan pembayaran untuk menghindari denda.</p>
+                    </div>
+                @endif
+            </section>
+        @else
+            <section class="tenant-card">
+                <header>
+                    <strong>Tagihan</strong>
+                    <span>-</span>
+                </header>
+                <p style="color:#64748b;padding:8px 0;">Belum ada tagihan yang tercatat.</p>
+            </section>
+        @endif
+
+        <section class="quick-grid">
+            <a href="{{ route('komplain') }}" class="quick-action">
+                <i class="bi bi-chat-left-text"></i>
+                <div>
+                    <strong>Ajukan Komplain</strong>
+                    <small>{{ $tenantKomplainCount > 0 ? $tenantKomplainCount . ' komplain aktif' : 'Sampaikan keluhan' }}</small>
+                </div>
+            </a>
+            <a href="{{ route('pembayaran') }}" class="quick-action">
+                <i class="bi bi-credit-card"></i>
+                <div>
+                    <strong>Riwayat Pembayaran</strong>
+                    <small>Lihat semua tagihan</small>
+                </div>
+            </a>
+        </section>
+    @else
+        <section class="tenant-card">
+            <header>
+                <strong>Info</strong>
+                <span class="warn">Belum ada kamar</span>
+            </header>
+            <p style="color:#64748b;padding:8px 0;">Data penyewa belum ditemukan atau kontrak sudah berakhir. Hubungi pengelola kost.</p>
+        </section>
+    @endif
 @endif
 @endsection
