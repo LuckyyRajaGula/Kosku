@@ -132,23 +132,38 @@
 
                     {{-- Aksi pengelola/pemilik --}}
                     @if (in_array($role, ['pemilik', 'pengelola']))
-                        <form method="POST" action="{{ route('komplain.update', $k->id_komplain) }}" class="room-actions" style="margin-top:12px;flex-direction:column;">
-                            @csrf
-                            @method('PUT')
-                            <select name="status_penanganan" required>
-                                <option value="Diajukan" {{ $k->status_penanganan === 'Diajukan' ? 'selected' : '' }}>Diajukan</option>
-                                <option value="Diproses" {{ $k->status_penanganan === 'Diproses' ? 'selected' : '' }}>Diproses</option>
-                                <option value="Selesai" {{ $k->status_penanganan === 'Selesai' ? 'selected' : '' }}>Selesai</option>
-                            </select>
-                            <textarea name="respon" rows="2" placeholder="Tulis respon..." style="width:100%;border:1px solid #d8dce4;border-radius:12px;padding:10px;font-size:13px;font-family:inherit;resize:vertical;background:#f8f9fb;">{{ $k->respon }}</textarea>
-                            <button type="submit" class="primary-btn" style="width:100%;">Update Status</button>
-                        </form>
+                        <details class="edit-details" style="margin-top: 10px; width: 100%;">
+                            <summary class="ghost-btn" style="width: 100%; min-height: 36px; font-size: 13px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 6px;">
+                                <i class="bi bi-pencil-square"></i> Tangani Komplain
+                            </summary>
+                            <div class="edit-details-content" style="margin-top: 12px; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+                                <form method="POST" action="{{ route('komplain.update', $k->id_komplain) }}" class="room-actions" style="margin-top:0;flex-direction:column;gap:8px;">
+                                    @csrf
+                                    @method('PUT')
+                                    <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; text-align: left;">
+                                        <div>
+                                            <label style="font-size: 11px; font-weight: bold; margin-bottom: 2px; display: block;">Status Penanganan</label>
+                                            <select name="status_penanganan" required style="height: 38px; font-size: 13px;">
+                                                <option value="Diajukan" {{ $k->status_penanganan === 'Diajukan' ? 'selected' : '' }}>Diajukan</option>
+                                                <option value="Diproses" {{ $k->status_penanganan === 'Diproses' ? 'selected' : '' }}>Diproses</option>
+                                                <option value="Selesai" {{ $k->status_penanganan === 'Selesai' ? 'selected' : '' }}>Selesai</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label style="font-size: 11px; font-weight: bold; margin-bottom: 2px; display: block;">Respon Pengelola</label>
+                                            <textarea name="respon" rows="2" placeholder="Tulis respon..." style="width:100%;border:1px solid #d8dce4;border-radius:12px;padding:10px;font-size:13px;font-family:inherit;resize:vertical;background:#f8f9fb;">{{ $k->respon }}</textarea>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="primary-btn" style="width:100%; margin-top: 8px;">Update Status</button>
+                                </form>
 
-                        <form method="POST" action="{{ route('komplain.delete', $k->id_komplain) }}" onsubmit="return confirm('Yakin hapus komplain ini?');" style="margin-top:8px;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="ghost-btn" style="width:100%;border-color:#fecaca;color:#b91c1c;">Hapus</button>
-                        </form>
+                                <form method="POST" action="{{ route('komplain.delete', $k->id_komplain) }}" onsubmit="return confirm('Yakin hapus komplain ini?');" style="margin-top:8px;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="ghost-btn" style="width:100%;border-color:#fecaca;color:#b91c1c;">Hapus</button>
+                                </form>
+                            </div>
+                        </details>
                     @endif
                 </article>
             @endforeach

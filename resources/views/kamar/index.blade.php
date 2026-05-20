@@ -172,103 +172,110 @@
                     </div>
 
                     @if ($canEdit)
-                        <form method="POST" action="{{ route('kamar.update', $room['id_kamar']) }}" class="room-actions" style="margin-top: 12px; flex-direction:column;">
-                            @csrf
-                            @method('PUT')
-                            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
-                                <div>
-                                    <label style="font-size: 11px; font-weight: bold; margin-bottom: 2px;">Nomor Kamar</label>
-                                    <input type="text" name="no_kamar" value="{{ $room['no_kamar'] }}" required style="height: 38px; font-size: 13px;">
-                                </div>
-                                <div>
-                                    <label style="font-size: 11px; font-weight: bold; margin-bottom: 2px;">Tipe Kamar</label>
-                                    <select name="tipe_kamar" required style="height: 38px; font-size: 13px;">
-                                        <option value="Ekonomis" {{ $room['tipe_kamar'] === 'Ekonomis' ? 'selected' : '' }}>Ekonomis</option>
-                                        <option value="Menengah" {{ $room['tipe_kamar'] === 'Menengah' ? 'selected' : '' }}>Menengah</option>
-                                        <option value="Eksklusif" {{ $room['tipe_kamar'] === 'Eksklusif' ? 'selected' : '' }}>Eksklusif</option>
-                                        <option value="Mewah" {{ $room['tipe_kamar'] === 'Mewah' ? 'selected' : '' }}>Mewah / Suite</option>
-                                        @if (!in_array($room['tipe_kamar'], ['Ekonomis', 'Menengah', 'Eksklusif', 'Mewah']) && $room['tipe_kamar'])
-                                            <option value="{{ $room['tipe_kamar'] }}" selected>{{ $room['tipe_kamar'] }} (Lama)</option>
-                                        @endif
-                                    </select>
-                                </div>
-                                <div>
-                                    <label style="font-size: 11px; font-weight: bold; margin-bottom: 2px;">Harga</label>
-                                    <select name="harga" required style="height: 38px; font-size: 13px;">
-                                        <optgroup label="Ekonomis">
-                                            <option value="500000" {{ (int)$room['harga'] === 500000 ? 'selected' : '' }}>Rp 500.000 / bulan</option>
-                                            <option value="750000" {{ (int)$room['harga'] === 750000 ? 'selected' : '' }}>Rp 750.000 / bulan</option>
-                                            <option value="1000000" {{ (int)$room['harga'] === 1000000 ? 'selected' : '' }}>Rp 1.000.000 / bulan</option>
-                                        </optgroup>
-                                        <optgroup label="Menengah">
-                                            <option value="1200000" {{ (int)$room['harga'] === 1200000 ? 'selected' : '' }}>Rp 1.200.000 / bulan</option>
-                                            <option value="1500000" {{ (int)$room['harga'] === 1500000 ? 'selected' : '' }}>Rp 1.500.000 / bulan</option>
-                                            <option value="1800000" {{ (int)$room['harga'] === 1800000 ? 'selected' : '' }}>Rp 1.800.000 / bulan</option>
-                                            <option value="2000000" {{ (int)$room['harga'] === 2000000 ? 'selected' : '' }}>Rp 2.000.000 / bulan</option>
-                                        </optgroup>
-                                        <optgroup label="Eksklusif">
-                                            <option value="2500000" {{ (int)$room['harga'] === 2500000 ? 'selected' : '' }}>Rp 2.500.000 / bulan</option>
-                                            <option value="3000000" {{ (int)$room['harga'] === 3000000 ? 'selected' : '' }}>Rp 3.000.000 / bulan</option>
-                                            <option value="3500000" {{ (int)$room['harga'] === 3500000 ? 'selected' : '' }}>Rp 3.500.000 / bulan</option>
-                                            <option value="4000000" {{ (int)$room['harga'] === 4000000 ? 'selected' : '' }}>Rp 4.000.000 / bulan</option>
-                                        </optgroup>
-                                        <optgroup label="Mewah">
-                                            <option value="5000000" {{ (int)$room['harga'] === 5000000 ? 'selected' : '' }}>Rp 5.000.000 / bulan</option>
-                                            <option value="6000000" {{ (int)$room['harga'] === 6000000 ? 'selected' : '' }}>Rp 6.000.000 / bulan</option>
-                                            <option value="7500000" {{ (int)$room['harga'] === 7500000 ? 'selected' : '' }}>Rp 7.500.000 / bulan</option>
-                                        </optgroup>
-                                        @if (!in_array((int)$room['harga'], [500000, 750000, 1000000, 1200000, 1500000, 1800000, 2000000, 2500000, 3000000, 3500000, 4000000, 5000000, 6000000, 7500000]))
-                                            <option value="{{ (int)$room['harga'] }}" selected>Custom (Rp {{ number_format($room['harga'], 0, ',', '.') }} / bulan)</option>
-                                        @endif
-                                    </select>
-                                </div>
-                                <div>
-                                    <label style="font-size: 11px; font-weight: bold; margin-bottom: 2px;">Status</label>
-                                    <select name="status_ketersediaan" required style="height: 38px; font-size: 13px;">
-                                        <option value="Kosong" {{ $room['status_ketersediaan'] === 'Kosong' ? 'selected' : '' }}>Kosong</option>
-                                        <option value="Terisi" {{ $room['status_ketersediaan'] === 'Terisi' ? 'selected' : '' }}>Terisi</option>
-                                        <option value="Maintenance" {{ $room['status_ketersediaan'] === 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label style="font-size: 11px; font-weight: bold; margin-bottom: 2px;">Luas Kamar</label>
-                                    <input type="text" name="luas_kamar" value="{{ $room['luas_kamar'] }}" placeholder="Luas kamar" style="height: 38px; font-size: 13px;">
-                                </div>
-                                <div style="text-align: left; margin: 4px 0;">
-                                    <label style="font-size: 11px; font-weight: bold;">Fasilitas</label>
-                                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 4px;">
-                                        @php
-                                            $checkedList = $room['fasilitas_list']->toArray();
-                                        @endphp
-                                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: normal; cursor: pointer; margin-bottom: 0;">
-                                            <input type="checkbox" name="fasilitias[]" value="AC" {{ in_array('AC', $checkedList) ? 'checked' : '' }} style="width: auto; height: auto;"> AC
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: normal; cursor: pointer; margin-bottom: 0;">
-                                            <input type="checkbox" name="fasilitias[]" value="WiFi" {{ in_array('WiFi', $checkedList) ? 'checked' : '' }} style="width: auto; height: auto;"> WiFi
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: normal; cursor: pointer; margin-bottom: 0;">
-                                            <input type="checkbox" name="fasilitias[]" value="TV" {{ in_array('TV', $checkedList) ? 'checked' : '' }} style="width: auto; height: auto;"> TV
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: normal; cursor: pointer; margin-bottom: 0;">
-                                            <input type="checkbox" name="fasilitias[]" value="Kamar Mandi Dalam" {{ in_array('Kamar Mandi Dalam', $checkedList) ? 'checked' : '' }} style="width: auto; height: auto;"> Km. Mandi
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: normal; cursor: pointer; margin-bottom: 0;">
-                                            <input type="checkbox" name="fasilitias[]" value="Kulkas" {{ in_array('Kulkas', $checkedList) ? 'checked' : '' }} style="width: auto; height: auto;"> Kulkas
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: normal; cursor: pointer; margin-bottom: 0;">
-                                            <input type="checkbox" name="fasilitias[]" value="Balkon" {{ in_array('Balkon', $checkedList) ? 'checked' : '' }} style="width: auto; height: auto;"> Balkon
-                                        </label>
+                        <details class="edit-details" style="margin-top: 10px; width: 100%;">
+                            <summary class="ghost-btn" style="width: 100%; min-height: 36px; font-size: 13px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 6px;">
+                                <i class="bi bi-pencil-square"></i> Kelola Kamar
+                            </summary>
+                            <div class="edit-details-content" style="margin-top: 12px; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+                                <form method="POST" action="{{ route('kamar.update', $room['id_kamar']) }}" class="room-actions" style="margin-top: 0; flex-direction:column;">
+                                    @csrf
+                                    @method('PUT')
+                                    <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+                                        <div>
+                                            <label style="font-size: 11px; font-weight: bold; margin-bottom: 2px;">Nomor Kamar</label>
+                                            <input type="text" name="no_kamar" value="{{ $room['no_kamar'] }}" required style="height: 38px; font-size: 13px;">
+                                        </div>
+                                        <div>
+                                            <label style="font-size: 11px; font-weight: bold; margin-bottom: 2px;">Tipe Kamar</label>
+                                            <select name="tipe_kamar" required style="height: 38px; font-size: 13px;">
+                                                <option value="Ekonomis" {{ $room['tipe_kamar'] === 'Ekonomis' ? 'selected' : '' }}>Ekonomis</option>
+                                                <option value="Menengah" {{ $room['tipe_kamar'] === 'Menengah' ? 'selected' : '' }}>Menengah</option>
+                                                <option value="Eksklusif" {{ $room['tipe_kamar'] === 'Eksklusif' ? 'selected' : '' }}>Eksklusif</option>
+                                                <option value="Mewah" {{ $room['tipe_kamar'] === 'Mewah' ? 'selected' : '' }}>Mewah / Suite</option>
+                                                @if (!in_array($room['tipe_kamar'], ['Ekonomis', 'Menengah', 'Eksklusif', 'Mewah']) && $room['tipe_kamar'])
+                                                    <option value="{{ $room['tipe_kamar'] }}" selected>{{ $room['tipe_kamar'] }} (Lama)</option>
+                                                @endif
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label style="font-size: 11px; font-weight: bold; margin-bottom: 2px;">Harga</label>
+                                            <select name="harga" required style="height: 38px; font-size: 13px;">
+                                                <optgroup label="Ekonomis">
+                                                    <option value="500000" {{ (int)$room['harga'] === 500000 ? 'selected' : '' }}>Rp 500.000 / bulan</option>
+                                                    <option value="750000" {{ (int)$room['harga'] === 750000 ? 'selected' : '' }}>Rp 750.000 / bulan</option>
+                                                    <option value="1000000" {{ (int)$room['harga'] === 1000000 ? 'selected' : '' }}>Rp 1.000.000 / bulan</option>
+                                                </optgroup>
+                                                <optgroup label="Menengah">
+                                                    <option value="1200000" {{ (int)$room['harga'] === 1200000 ? 'selected' : '' }}>Rp 1.200.000 / bulan</option>
+                                                    <option value="1500000" {{ (int)$room['harga'] === 1500000 ? 'selected' : '' }}>Rp 1.500.000 / bulan</option>
+                                                    <option value="1800000" {{ (int)$room['harga'] === 1800000 ? 'selected' : '' }}>Rp 1.800.000 / bulan</option>
+                                                    <option value="2000000" {{ (int)$room['harga'] === 2000000 ? 'selected' : '' }}>Rp 2.000.000 / bulan</option>
+                                                </optgroup>
+                                                <optgroup label="Eksklusif">
+                                                    <option value="2500000" {{ (int)$room['harga'] === 2500000 ? 'selected' : '' }}>Rp 2.500.000 / bulan</option>
+                                                    <option value="3000000" {{ (int)$room['harga'] === 3000000 ? 'selected' : '' }}>Rp 3.000.000 / bulan</option>
+                                                    <option value="3500000" {{ (int)$room['harga'] === 3500000 ? 'selected' : '' }}>Rp 3.500.000 / bulan</option>
+                                                    <option value="4000000" {{ (int)$room['harga'] === 4000000 ? 'selected' : '' }}>Rp 4.000.000 / bulan</option>
+                                                </optgroup>
+                                                <optgroup label="Mewah">
+                                                    <option value="5000000" {{ (int)$room['harga'] === 5000000 ? 'selected' : '' }}>Rp 5.000.000 / bulan</option>
+                                                    <option value="6000000" {{ (int)$room['harga'] === 6000000 ? 'selected' : '' }}>Rp 6.000.000 / bulan</option>
+                                                    <option value="7500000" {{ (int)$room['harga'] === 7500000 ? 'selected' : '' }}>Rp 7.500.000 / bulan</option>
+                                                </optgroup>
+                                                @if (!in_array((int)$room['harga'], [500000, 750000, 1000000, 1200000, 1500000, 1800000, 2000000, 2500000, 3000000, 3500000, 4000000, 5000000, 6000000, 7500000]))
+                                                    <option value="{{ (int)$room['harga'] }}" selected>Custom (Rp {{ number_format($room['harga'], 0, ',', '.') }} / bulan)</option>
+                                                @endif
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label style="font-size: 11px; font-weight: bold; margin-bottom: 2px;">Status</label>
+                                            <select name="status_ketersediaan" required style="height: 38px; font-size: 13px;">
+                                                <option value="Kosong" {{ $room['status_ketersediaan'] === 'Kosong' ? 'selected' : '' }}>Kosong</option>
+                                                <option value="Terisi" {{ $room['status_ketersediaan'] === 'Terisi' ? 'selected' : '' }}>Terisi</option>
+                                                <option value="Maintenance" {{ $room['status_ketersediaan'] === 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label style="font-size: 11px; font-weight: bold; margin-bottom: 2px;">Luas Kamar</label>
+                                            <input type="text" name="luas_kamar" value="{{ $room['luas_kamar'] }}" placeholder="Luas kamar" style="height: 38px; font-size: 13px;">
+                                        </div>
+                                        <div style="text-align: left; margin: 4px 0;">
+                                            <label style="font-size: 11px; font-weight: bold;">Fasilitas</label>
+                                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 4px;">
+                                                @php
+                                                    $checkedList = $room['fasilitas_list']->toArray();
+                                                @endphp
+                                                <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: normal; cursor: pointer; margin-bottom: 0;">
+                                                    <input type="checkbox" name="fasilitias[]" value="AC" {{ in_array('AC', $checkedList) ? 'checked' : '' }} style="width: auto; height: auto;"> AC
+                                                </label>
+                                                <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: normal; cursor: pointer; margin-bottom: 0;">
+                                                    <input type="checkbox" name="fasilitias[]" value="WiFi" {{ in_array('WiFi', $checkedList) ? 'checked' : '' }} style="width: auto; height: auto;"> WiFi
+                                                </label>
+                                                <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: normal; cursor: pointer; margin-bottom: 0;">
+                                                    <input type="checkbox" name="fasilitias[]" value="TV" {{ in_array('TV', $checkedList) ? 'checked' : '' }} style="width: auto; height: auto;"> TV
+                                                </label>
+                                                <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: normal; cursor: pointer; margin-bottom: 0;">
+                                                    <input type="checkbox" name="fasilitias[]" value="Kamar Mandi Dalam" {{ in_array('Kamar Mandi Dalam', $checkedList) ? 'checked' : '' }} style="width: auto; height: auto;"> Km. Mandi
+                                                </label>
+                                                <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: normal; cursor: pointer; margin-bottom: 0;">
+                                                    <input type="checkbox" name="fasilitias[]" value="Kulkas" {{ in_array('Kulkas', $checkedList) ? 'checked' : '' }} style="width: auto; height: auto;"> Kulkas
+                                                </label>
+                                                <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: normal; cursor: pointer; margin-bottom: 0;">
+                                                    <input type="checkbox" name="fasilitias[]" value="Balkon" {{ in_array('Balkon', $checkedList) ? 'checked' : '' }} style="width: auto; height: auto;"> Balkon
+                                                </label>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                            <button type="submit" class="primary-btn" style="width:100%; margin-top: 8px;">Update</button>
-                        </form>
+                                    <button type="submit" class="primary-btn" style="width:100%; margin-top: 8px;">Update</button>
+                                </form>
 
-                        <form method="POST" action="{{ route('kamar.delete', $room['id_kamar']) }}" onsubmit="return confirm('Yakin ingin menghapus kamar ini?');" style="margin-top:8px;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="ghost-btn" style="width:100%; border-color:#fecaca; color:#b91c1c;">Hapus</button>
-                        </form>
+                                <form method="POST" action="{{ route('kamar.delete', $room['id_kamar']) }}" onsubmit="return confirm('Yakin ingin menghapus kamar ini?');" style="margin-top:8px;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="ghost-btn" style="width:100%; border-color:#fecaca; color:#b91c1c;">Hapus</button>
+                                </form>
+                            </div>
+                        </details>
                     @endif
                 </article>
             @endforeach

@@ -61,6 +61,29 @@
         });
     }
 
+    const profilePanel = document.getElementById('profileDropdownPanel');
+    const profileToggle = document.getElementById('profileDropdownBtn');
+    const profileWrap = document.querySelector('.profile-dropdown-wrap');
+
+    if (profileToggle && profilePanel) {
+        profileToggle.addEventListener('click', (event) => {
+            event.stopPropagation();
+            profilePanel.classList.toggle('open');
+            if (profileWrap) {
+                profileWrap.classList.toggle('active');
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!profilePanel.contains(event.target) && !profileToggle.contains(event.target)) {
+                profilePanel.classList.remove('open');
+                if (profileWrap) {
+                    profileWrap.classList.remove('active');
+                }
+            }
+        });
+    }
+
     /* ─── Premium Custom Select Converter ─── */
     function convertSelect(select) {
         if (select.classList.contains('custom-select-hidden')) return;
@@ -406,9 +429,43 @@
         });
     }
 
+    function initAutoLoginChips() {
+        const chips = document.querySelectorAll('.demo-chip');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const form = document.querySelector('.login-right form');
+
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                const username = chip.getAttribute('data-username');
+                const password = chip.getAttribute('data-password');
+
+                if (usernameInput && passwordInput) {
+                    usernameInput.value = username;
+                    passwordInput.value = password;
+
+                    // Add active class animation
+                    chips.forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+
+                    // Play feedback toast
+                    if (window.showToast) {
+                        window.showToast(`Mengisi kredensial: ${username}`, 'info');
+                    }
+
+                    // Submit form after short dynamic delay for smooth visuals
+                    setTimeout(() => {
+                        if (form) form.submit();
+                    }, 450);
+                }
+            });
+        });
+    }
+
     function initializeAll() {
         initCustomSelects();
         initLaravelAlerts();
+        initAutoLoginChips();
     }
 
     // Initialize custom selects & alerts immediately or when DOM is fully ready

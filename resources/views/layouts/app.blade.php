@@ -64,24 +64,6 @@
                     </a>
                 @endforeach
             </nav>
-
-            <div class="sidebar-footer">
-                <div class="user-chip">
-                    <div class="avatar">{{ $initial }}</div>
-                    <div>
-                        <p>{{ $name }}</p>
-                        <span>{{ ucfirst($role) }}</span>
-                    </div>
-                </div>
-
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="logout-btn">
-                        <i class="bi bi-box-arrow-right"></i>
-                        Keluar
-                    </button>
-                </form>
-            </div>
         </aside>
 
         <div class="mobile-backdrop" id="mobileBackdrop" data-close-sidebar></div>
@@ -117,12 +99,32 @@
                         </div>
                     </div>
 
-                    <div class="top-user">
-                        <div>
-                            <p>{{ $name }}</p>
-                            <span>{{ ucfirst($role) }}</span>
+                    <div class="profile-dropdown-wrap">
+                        <button type="button" class="top-user" id="profileDropdownBtn">
+                            <div>
+                                <p>{{ $name }}</p>
+                                <span>{{ ucfirst($role) }}</span>
+                            </div>
+                            <div class="avatar sm">{{ $initial }}</div>
+                            <i class="bi bi-chevron-down dropdown-arrow"></i>
+                        </button>
+                        <div class="profile-dropdown-panel" id="profileDropdownPanel">
+                            <div class="dropdown-header">
+                                <div class="avatar">{{ $initial }}</div>
+                                <div>
+                                    <strong>{{ $name }}</strong>
+                                    <span>{{ ucfirst($role) }}</span>
+                                </div>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="dropdown-logout-btn">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    Keluar / Logout
+                                </button>
+                            </form>
                         </div>
-                        <div class="avatar sm">{{ $initial }}</div>
                     </div>
                 </div>
             </header>

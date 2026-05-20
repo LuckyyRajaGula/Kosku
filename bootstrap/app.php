@@ -16,6 +16,21 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'kosku.auth' => EnsureKoskuAuthenticated::class,
         ]);
+        
+        $middleware->validateCsrfTokens(except: [
+            'login',
+            'logout',
+            'kamar',
+            'kamar/*',
+            'manajemen-pengguna',
+            'manajemen-pengguna/*',
+            'penyewa',
+            'penyewa/*',
+            'pembayaran',
+            'pembayaran/*',
+            'komplain',
+            'komplain/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
