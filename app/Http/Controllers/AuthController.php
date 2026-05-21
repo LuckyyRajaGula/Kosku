@@ -10,21 +10,13 @@ use Illuminate\View\View;
 
 class AuthController extends Controller
 {
-    private const SEEDED_CREDENTIAL_HINTS = [
-        ['role' => 'pemilik', 'username' => 'budi.pemilik', 'password' => 'pemilik123'],
-        ['role' => 'pengelola', 'username' => 'siti.pengelola', 'password' => 'pengelola123'],
-        ['role' => 'penyewa', 'username' => 'ahmad.penyewa', 'password' => 'penyewa123'],
-    ];
-
     public function showLogin(Request $request): View|RedirectResponse
     {
         if ($request->session()->has('kosku_user')) {
             return redirect()->route('dashboard');
         }
 
-        return view('auth.login', [
-            'demoAccounts' => self::SEEDED_CREDENTIAL_HINTS,
-        ]);
+        return view('auth.login');
     }
 
     public function login(Request $request): RedirectResponse

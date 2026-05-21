@@ -12,7 +12,6 @@
         <!-- Left Visual branding pane -->
         <div class="login-left">
             <div class="login-left-brand">
-                <i class="bi bi-houses-fill" style="color: #ffffff;"></i>
                 <h2>KosKu</h2>
             </div>
             
@@ -22,15 +21,12 @@
                 
                 <div class="features-list">
                     <div class="feature-item">
-                        <i class="bi bi-shield-check" style="color: #ffffff;"></i>
                         <span>Keamanan Data & Role Terproteksi</span>
                     </div>
                     <div class="feature-item">
-                        <i class="bi bi-cash-coin" style="color: #ffffff;"></i>
                         <span>Pencatatan & Tagihan Otomatis</span>
                     </div>
                     <div class="feature-item">
-                        <i class="bi bi-chat-heart" style="color: #ffffff;"></i>
                         <span>Penanganan Komplain Terpusat</span>
                     </div>
                 </div>
@@ -84,29 +80,9 @@
                 </div>
 
                 <button type="submit" class="primary-btn">
-                    Masuk <i class="bi bi-arrow-right"></i>
+                    Masuk
                 </button>
             </form>
-
-            <div class="quick-demo-box">
-                <div class="quick-demo-title">
-                    <i class="bi bi-lightning-charge-fill"></i> Autologin Demo Cepat
-                </div>
-                <div class="demo-chips-grid">
-                    @foreach ($demoAccounts as $account)
-                        @php
-                            $userNick = 'User';
-                            if ($account['role'] === 'pemilik') $userNick = 'Budi';
-                            elseif ($account['role'] === 'pengelola') $userNick = 'Siti';
-                            elseif ($account['role'] === 'penyewa') $userNick = 'Ahmad';
-                        @endphp
-                        <button type="button" class="demo-chip" data-username="{{ $account['username'] }}" data-password="{{ $account['password'] }}">
-                            <span class="chip-role {{ $account['role'] }}">{{ $account['role'] }}</span>
-                            <span class="chip-user">{{ $userNick }}</span>
-                        </button>
-                    @endforeach
-                </div>
-            </div>
         </div>
     </div>
 </div>

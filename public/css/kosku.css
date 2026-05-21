@@ -183,19 +183,14 @@ a {
 .feature-item {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 
-.feature-item i {
-    font-size: 15px;
-    background: rgba(255, 255, 255, 0.15);
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 9px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+.feature-item::before {
+    content: "•";
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 20px;
+    line-height: 1;
 }
 
 .feature-item span {
@@ -369,6 +364,7 @@ a {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
     color: #374151;
@@ -394,8 +390,11 @@ a {
     text-transform: uppercase;
     padding: 2px 6px;
     border-radius: 6px;
-    margin-bottom: 4px;
     letter-spacing: 0.5px;
+}
+
+.chip-role:not(:last-child) {
+    margin-bottom: 4px;
 }
 
 .chip-role.pemilik {
