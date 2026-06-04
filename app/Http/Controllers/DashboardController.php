@@ -779,34 +779,12 @@ class DashboardController extends Controller
         $this->ensureOwner($request);
 
         $filterTahun = (string) $request->query('tahun', date('Y'));
+        $filterBulan = (string) $request->query('bulan', 'all');
+
         $driver = DB::getDriverName();
         $monthExpr = $driver === 'sqlite' ? "strftime('%Y-%m', tanggal_jatuh_tempo)" : "DATE_FORMAT(tanggal_jatuh_tempo, '%Y-%m')";
         $yearExpr = $driver === 'sqlite' ? "strftime('%Y', tanggal_jatuh_tempo)" : "DATE_FORMAT(tanggal_jatuh_tempo, '%Y')";
-
-        // Ringkasan per bulan
-        $bulanan = DB::table('tagihan_pembayaran')
-            ->selectRaw("
-                {$monthExpr} as periode_bulan,
-                COUNT(*) as total_tagihan,
-                SUM(CASE WHEN status = 'Lunas' THEN 1 ELSE 0 END) as jumlah_lunas,
-                SUM(CASE WHEN status = 'Belum Bayar' THEN 1 ELSE 0 END) as jumlah_belum,
-                SUM(CASE WHEN status = 'Telat' THEN 1 ELSE 0 END) as jumlah_telat,
-                SUM(CASE WHEN status = 'Lunas' THEN nominal ELSE 0 END) as pendapatan,
-                SUM(nominal) as total_nominal
-            ")
-            ->whereRaw("{$yearExpr} = ?", [$filterTahun])
-            ->groupByRaw($monthExpr)
-            ->orderBy('periode_bulan')
-            ->get();
-
-        // Statistik keseluruhan tahun ini
-        $statsQuery = DB::table('tagihan_pembayaran')
-            ->whereRaw("{$yearExpr} = ?", [$filterTahun]);
-
-        $totalPendapatan = (clone $statsQuery)->where('status', 'Lunas')->sum('nominal');
-        $totalTagihan = (clone $statsQuery)->count();
-        $totalLunas = (clone $statsQuery)->where('status', 'Lunas')->count();
-        $totalBelum = (clone $statsQuery)->where('status', 'Belum Bayar')->count();
+        $onlyMonthExpr = $driver === 'sqlite' ? "strftime('%m', tanggal_jatuh_tempo)" : "DATE_FORMAT(tanggal_jatuh_tempo, '%m')";
 
         // Tahun-tahun yang tersedia
         $tahunList = DB::table('tagihan_pembayaran')
@@ -818,11 +796,80 @@ class DashboardController extends Controller
             $tahunList = collect([date('Y')]);
         }
 
+        // Daftar bulan
+        $bulanList = [
+            'all' => 'Semua Bulan',
+            '01' => 'Januari',
+            '02' => 'Februari',
+            '03' => 'Maret',
+            '04' => 'April',
+            '05' => 'Mei',
+            '06' => 'Juni',
+            '07' => 'Juli',
+            '08' => 'Agustus',
+            '09' => 'September',
+            '10' => 'Oktober',
+            '11' => 'November',
+            '12' => 'Desember',
+        ];
+
+        // Ambil data
+        if ($filterBulan === 'all') {
+            // Ringkasan per bulan
+            $bulanan = DB::table('tagihan_pembayaran')
+                ->selectRaw("
+                    {$monthExpr} as periode_bulan,
+                    COUNT(*) as total_tagihan,
+                    SUM(CASE WHEN status = 'Lunas' THEN 1 ELSE 0 END) as jumlah_lunas,
+                    SUM(CASE WHEN status = 'Belum Bayar' THEN 1 ELSE 0 END) as jumlah_belum,
+                    SUM(CASE WHEN status = 'Telat' THEN 1 ELSE 0 END) as jumlah_telat,
+                    SUM(CASE WHEN status = 'Lunas' THEN nominal ELSE 0 END) as pendapatan,
+                    SUM(nominal) as total_nominal
+                ")
+                ->whereRaw("{$yearExpr} = ?", [$filterTahun])
+                ->groupByRaw($monthExpr)
+                ->orderBy('periode_bulan')
+                ->get();
+
+            $statsQuery = DB::table('tagihan_pembayaran')
+                ->whereRaw("{$yearExpr} = ?", [$filterTahun]);
+
+            $details = null;
+        } else {
+            // Rincian per tagihan di bulan terpilih
+            $details = DB::table('tagihan_pembayaran')
+                ->join('penyewa', 'penyewa.id_penyewa', '=', 'tagihan_pembayaran.id_penyewa')
+                ->leftJoin('kamar', 'kamar.id_kamar', '=', 'penyewa.id_kamar')
+                ->select(
+                    'tagihan_pembayaran.*',
+                    'penyewa.nama as nama_penyewa',
+                    'kamar.no_kamar'
+                )
+                ->whereRaw("{$yearExpr} = ?", [$filterTahun])
+                ->whereRaw("{$onlyMonthExpr} = ?", [$filterBulan])
+                ->orderBy('tagihan_pembayaran.tanggal_jatuh_tempo')
+                ->get();
+
+            $statsQuery = DB::table('tagihan_pembayaran')
+                ->whereRaw("{$yearExpr} = ?", [$filterTahun])
+                ->whereRaw("{$onlyMonthExpr} = ?", [$filterBulan]);
+
+            $bulanan = null;
+        }
+
+        $totalPendapatan = (clone $statsQuery)->where('status', 'Lunas')->sum('nominal');
+        $totalTagihan = (clone $statsQuery)->count();
+        $totalLunas = (clone $statsQuery)->where('status', 'Lunas')->count();
+        $totalBelum = (clone $statsQuery)->where('status', 'Belum Bayar')->count();
+
         return view('laporan.index', [
             'user' => $this->currentUser($request),
             'bulanan' => $bulanan,
+            'details' => $details,
             'filterTahun' => $filterTahun,
+            'filterBulan' => $filterBulan,
             'tahunList' => $tahunList,
+            'bulanList' => $bulanList,
             'totalPendapatan' => $totalPendapatan,
             'totalTagihan' => $totalTagihan,
             'totalLunas' => $totalLunas,
@@ -835,9 +882,128 @@ class DashboardController extends Controller
         $this->ensureOwner($request);
 
         $tahun = (string) $request->query('tahun', date('Y'));
-        $filename = 'laporan-keuangan-'.$tahun.'.xlsx';
+        $bulan = (string) $request->query('bulan', 'all');
 
-        return Excel::download(new LaporanBulananExport($tahun), $filename);
+        $bulanList = [
+            'all' => 'Semua Bulan',
+            '01' => 'Januari',
+            '02' => 'Februari',
+            '03' => 'Maret',
+            '04' => 'April',
+            '05' => 'Mei',
+            '06' => 'Juni',
+            '07' => 'Juli',
+            '08' => 'Agustus',
+            '09' => 'September',
+            '10' => 'Oktober',
+            '11' => 'November',
+            '12' => 'Desember',
+        ];
+
+        if ($bulan === 'all') {
+            $filename = 'laporan-keuangan-'.$tahun.'.xlsx';
+        } else {
+            $namaBulanSlug = strtolower(str_replace(' ', '-', $bulanList[$bulan] ?? $bulan));
+            $filename = 'laporan-keuangan-'.$namaBulanSlug.'-'.$tahun.'.xlsx';
+        }
+
+        return Excel::download(new LaporanBulananExport($tahun, $bulan), $filename);
+    }
+
+    public function exportLaporanPdf(Request $request)
+    {
+        $this->ensureOwner($request);
+
+        $tahun = (string) $request->query('tahun', date('Y'));
+        $bulan = (string) $request->query('bulan', 'all');
+
+        $driver = DB::getDriverName();
+        $monthExpr = $driver === 'sqlite' ? "strftime('%Y-%m', tanggal_jatuh_tempo)" : "DATE_FORMAT(tanggal_jatuh_tempo, '%Y-%m')";
+        $yearExpr = $driver === 'sqlite' ? "strftime('%Y', tanggal_jatuh_tempo)" : "DATE_FORMAT(tanggal_jatuh_tempo, '%Y')";
+        $onlyMonthExpr = $driver === 'sqlite' ? "strftime('%m', tanggal_jatuh_tempo)" : "DATE_FORMAT(tanggal_jatuh_tempo, '%m')";
+
+        $bulanList = [
+            'all' => 'Semua Bulan',
+            '01' => 'Januari',
+            '02' => 'Februari',
+            '03' => 'Maret',
+            '04' => 'April',
+            '05' => 'Mei',
+            '06' => 'Juni',
+            '07' => 'Juli',
+            '08' => 'Agustus',
+            '09' => 'September',
+            '10' => 'Oktober',
+            '11' => 'November',
+            '12' => 'Desember',
+        ];
+
+        if ($bulan === 'all') {
+            $bulanan = DB::table('tagihan_pembayaran')
+                ->selectRaw("
+                    {$monthExpr} as periode_bulan,
+                    COUNT(*) as total_tagihan,
+                    SUM(CASE WHEN status = 'Lunas' THEN 1 ELSE 0 END) as jumlah_lunas,
+                    SUM(CASE WHEN status = 'Belum Bayar' THEN 1 ELSE 0 END) as jumlah_belum,
+                    SUM(CASE WHEN status = 'Telat' THEN 1 ELSE 0 END) as jumlah_telat,
+                    SUM(CASE WHEN status = 'Lunas' THEN nominal ELSE 0 END) as pendapatan,
+                    SUM(nominal) as total_nominal
+                ")
+                ->whereRaw("{$yearExpr} = ?", [$tahun])
+                ->groupByRaw($monthExpr)
+                ->orderBy('periode_bulan')
+                ->get();
+
+            $statsQuery = DB::table('tagihan_pembayaran')
+                ->whereRaw("{$yearExpr} = ?", [$tahun]);
+
+            $details = null;
+        } else {
+            $details = DB::table('tagihan_pembayaran')
+                ->join('penyewa', 'penyewa.id_penyewa', '=', 'tagihan_pembayaran.id_penyewa')
+                ->leftJoin('kamar', 'kamar.id_kamar', '=', 'penyewa.id_kamar')
+                ->select(
+                    'tagihan_pembayaran.*',
+                    'penyewa.nama as nama_penyewa',
+                    'kamar.no_kamar'
+                )
+                ->whereRaw("{$yearExpr} = ?", [$tahun])
+                ->whereRaw("{$onlyMonthExpr} = ?", [$bulan])
+                ->orderBy('tagihan_pembayaran.tanggal_jatuh_tempo')
+                ->get();
+
+            $statsQuery = DB::table('tagihan_pembayaran')
+                ->whereRaw("{$yearExpr} = ?", [$tahun])
+                ->whereRaw("{$onlyMonthExpr} = ?", [$bulan]);
+
+            $bulanan = null;
+        }
+
+        $totalPendapatan = (clone $statsQuery)->where('status', 'Lunas')->sum('nominal');
+        $totalTagihan = (clone $statsQuery)->count();
+        $totalLunas = (clone $statsQuery)->where('status', 'Lunas')->count();
+        $totalBelum = (clone $statsQuery)->where('status', 'Belum Bayar')->count();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('laporan.pdf', [
+            'tahun' => $tahun,
+            'bulan' => $bulan,
+            'namaBulan' => $bulanList[$bulan] ?? '',
+            'bulanan' => $bulanan,
+            'details' => $details,
+            'totalPendapatan' => $totalPendapatan,
+            'totalTagihan' => $totalTagihan,
+            'totalLunas' => $totalLunas,
+            'totalBelum' => $totalBelum,
+        ]);
+
+        if ($bulan === 'all') {
+            $filename = 'laporan-keuangan-'.$tahun.'.pdf';
+        } else {
+            $namaBulanSlug = strtolower(str_replace(' ', '-', $bulanList[$bulan] ?? $bulan));
+            $filename = 'laporan-keuangan-'.$namaBulanSlug.'-'.$tahun.'.pdf';
+        }
+
+        return $pdf->download($filename);
     }
 
     /* ────────────────────────────────────────────────────────────
