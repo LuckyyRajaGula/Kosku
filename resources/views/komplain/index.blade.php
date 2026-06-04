@@ -54,7 +54,7 @@
 @if ($role === 'penyewa' && $penyewaId)
     <section class="filter-panel">
         <h3 class="section-title" style="margin-top:0;">Ajukan Komplain Baru</h3>
-        <form method="POST" action="{{ route('komplain.store') }}" class="form-grid">
+        <form method="POST" action="{{ route('komplain.store') }}" class="form-grid" enctype="multipart/form-data">
             @csrf
             <div>
                 <label for="jenis_komplain">Jenis Komplain</label>
@@ -71,6 +71,10 @@
             <div style="grid-column: span 2;">
                 <label for="deskripsi">Deskripsi</label>
                 <textarea id="deskripsi" name="deskripsi" rows="3" required style="width:100%;border:1px solid #d8dce4;border-radius:14px;padding:12px;font-size:14px;font-family:inherit;resize:vertical;background:#f8f9fb;">{{ old('deskripsi') }}</textarea>
+            </div>
+            <div>
+                <label for="bukti_foto">Foto Bukti (opsional)</label>
+                <input id="bukti_foto" type="file" name="bukti_foto" accept=".jpg,.jpeg,.png">
             </div>
             <div class="actions">
                 <button type="submit" class="primary-btn" style="width: 100%;">Kirim Komplain</button>
@@ -110,6 +114,14 @@
                     <div class="room-meta">
                         <small>Deskripsi</small>
                         <p style="font-weight:400;">{{ $k->deskripsi }}</p>
+                    </div>
+                    <div class="room-meta">
+                        <small>Foto Bukti</small>
+                        @if ($k->bukti_foto)
+                            <p><a class="ghost-btn" style="font-size:12px;padding:4px 10px;" target="_blank" href="{{ asset('storage/' . $k->bukti_foto) }}">📷 Lihat</a></p>
+                        @else
+                            <p style="font-weight:400; color:#94a3b8;">-</p>
+                        @endif
                     </div>
                     <div class="room-meta">
                         <small>Tanggal Pengajuan</small>

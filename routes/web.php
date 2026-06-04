@@ -48,4 +48,5 @@ Route::middleware('kosku.auth')->group(function (): void {
 
     // Laporan
     Route::get('/laporan', [DashboardController::class, 'laporan'])->name('laporan');
+    Route::get('/laporan/export', [DashboardController::class, 'exportLaporan'])->name('laporan.export');
 });

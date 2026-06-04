@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\DashboardDataController;
 use App\Http\Controllers\Api\ManagerAccountController;
 use App\Http\Controllers\Api\JwtAuthController;
 use Illuminate\Support\Facades\Route;
@@ -11,6 +12,11 @@ Route::prefix('auth')->group(function (): void {
         Route::get('/me', [JwtAuthController::class, 'me']);
         Route::post('/refresh', [JwtAuthController::class, 'refresh']);
         Route::post('/logout', [JwtAuthController::class, 'logout']);
+
+        Route::prefix('/dashboard')->group(function (): void {
+            Route::get('/owner-summary', [DashboardDataController::class, 'ownerSummary']);
+            Route::get('/manager-summary', [DashboardDataController::class, 'managerSummary']);
+        });
 
         Route::prefix('/owner/pengelola')->group(function (): void {
             Route::get('/', [ManagerAccountController::class, 'index']);

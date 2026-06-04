@@ -57,6 +57,24 @@
         @endforeach
     </section>
 
+    <h3 class="section-title">Tren Pendapatan & Hunian</h3>
+    <section class="chart-grid">
+        <article class="chart-card">
+            <header>
+                <strong>Pendapatan Lunas</strong>
+                <small>6 bulan terakhir</small>
+            </header>
+            <canvas id="revenueChart" height="170"></canvas>
+        </article>
+        <article class="chart-card">
+            <header>
+                <strong>Tingkat Hunian</strong>
+                <small>Persentase penyewa bayar</small>
+            </header>
+            <canvas id="occupancyChart" height="170"></canvas>
+        </article>
+    </section>
+
     <h3 class="section-title">Aksi Cepat</h3>
     <section class="quick-grid">
         <a href="{{ route('kamar') }}" class="quick-action">
@@ -130,6 +148,7 @@
             <div class="tenant-grid">
                 <div><small>Nomor Kamar</small><p>{{ $tenantData->no_kamar ?: '-' }}</p></div>
                 <div><small>Tipe Kamar</small><p>{{ $tenantData->tipe_kamar ?: '-' }}</p></div>
+                <div><small>Nominal Sewa</small><p>Rp {{ number_format($tenantData->harga ?? 0, 0, ',', '.') }}</p></div>
                 <div><small>Kontrak Mulai</small><p>{{ $tenantData->tanggal_masuk ? \Carbon\Carbon::parse($tenantData->tanggal_masuk)->translatedFormat('d M Y') : '-' }}</p></div>
                 <div><small>Kontrak Berakhir</small><p>{{ $tenantData->tanggal_keluar ? \Carbon\Carbon::parse($tenantData->tanggal_keluar)->translatedFormat('d M Y') : '-' }}</p></div>
             </div>
@@ -187,5 +206,80 @@
             <p style="color:#64748b;padding:8px 0;">Data penyewa belum ditemukan atau kontrak sudah berakhir. Hubungi pengelola kost.</p>
         </section>
     @endif
+@endif
+
+@if ($role === 'pemilik')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        (() => {
+            const labels = @json($chartLabels);
+            const revenueData = @json($chartRevenue);
+            const occupancyData = @json($chartOccupancy);
+
+            const revenueCtx = document.getElementById('revenueChart');
+            if (revenueCtx && window.Chart) {
+                new Chart(revenueCtx, {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Pendapatan',
+                            data: revenueData,
+                            borderColor: '#5b3df5',
+                            backgroundColor: 'rgba(91, 61, 245, 0.15)',
+                            pointBackgroundColor: '#5b3df5',
+                            tension: 0.35,
+                            fill: true,
+                        }],
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false },
+                        },
+                        scales: {
+                            y: {
+                                ticks: {
+                                    callback: (value) => 'Rp ' + Number(value).toLocaleString('id-ID'),
+                                },
+                            },
+                        },
+                    },
+                });
+            }
+
+            const occupancyCtx = document.getElementById('occupancyChart');
+            if (occupancyCtx && window.Chart) {
+                new Chart(occupancyCtx, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Hunian',
+                            data: occupancyData,
+                            backgroundColor: 'rgba(16, 185, 129, 0.25)',
+                            borderColor: '#10b981',
+                            borderWidth: 1.5,
+                            borderRadius: 10,
+                        }],
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false },
+                        },
+                        scales: {
+                            y: {
+                                suggestedMax: 100,
+                                ticks: {
+                                    callback: (value) => value + '%',
+                                },
+                            },
+                        },
+                    },
+                });
+            }
+        })();
+    </script>
 @endif
 @endsection

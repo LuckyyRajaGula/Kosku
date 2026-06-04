@@ -46,6 +46,7 @@
         </div>
         <div class="actions">
             <button type="submit" class="primary-btn">Tampilkan</button>
+            <a class="ghost-btn" href="{{ route('laporan.export', ['tahun' => $filterTahun]) }}">Export Excel</a>
         </div>
     </form>
 </section>

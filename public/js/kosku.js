@@ -84,6 +84,117 @@
         });
     }
 
+    const tenantSelect = document.getElementById('id_penyewa');
+    const nominalInput = document.getElementById('nominal');
+    const periodeInput = document.getElementById('periode');
+    const jatuhTempoInput = document.getElementById('tanggal_jatuh_tempo');
+
+    const monthNames = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+    ];
+
+    const monthIndex = {
+        januari: 0,
+        februari: 1,
+        maret: 2,
+        april: 3,
+        mei: 4,
+        juni: 5,
+        juli: 6,
+        agustus: 7,
+        september: 8,
+        oktober: 9,
+        november: 10,
+        desember: 11,
+    };
+
+    const defaultPeriode = () => {
+        const now = new Date();
+        return `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+    };
+
+    const parsePeriode = (value) => {
+        if (!value) {
+            const now = new Date();
+            return { year: now.getFullYear(), month: now.getMonth() };
+        }
+
+        const parts = value.trim().split(/\s+/);
+        if (parts.length < 2) {
+            const now = new Date();
+            return { year: now.getFullYear(), month: now.getMonth() };
+        }
+
+        const monthName = parts[0].toLowerCase();
+        const year = Number(parts[1]);
+        const month = monthIndex[monthName];
+
+        if (Number.isNaN(year) || month === undefined) {
+            const now = new Date();
+            return { year: now.getFullYear(), month: now.getMonth() };
+        }
+
+        return { year, month };
+    };
+
+    const setJatuhTempo = () => {
+        if (!tenantSelect || !jatuhTempoInput) {
+            return;
+        }
+
+        const option = tenantSelect.selectedOptions[0];
+        if (!option) {
+            return;
+        }
+
+        const tanggalMasuk = option.getAttribute('data-tanggal-masuk');
+        if (!tanggalMasuk) {
+            return;
+        }
+
+        const day = Number(tanggalMasuk.split('-')[2]);
+        if (!day) {
+            return;
+        }
+
+        const { year, month } = parsePeriode(periodeInput ? periodeInput.value : '');
+        const lastDay = new Date(year, month + 1, 0).getDate();
+        const dueDay = Math.min(day, lastDay);
+        const dueDate = new Date(year, month, dueDay);
+        const yyyy = dueDate.getFullYear();
+        const mm = String(dueDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(dueDate.getDate()).padStart(2, '0');
+
+        jatuhTempoInput.value = `${yyyy}-${mm}-${dd}`;
+    };
+
+    if (tenantSelect && nominalInput && periodeInput) {
+        tenantSelect.addEventListener('change', () => {
+            const option = tenantSelect.selectedOptions[0];
+            if (!option) {
+                return;
+            }
+
+            const harga = option.getAttribute('data-harga');
+            if (harga) {
+                nominalInput.value = harga;
+            }
+
+            if (!periodeInput.value) {
+                periodeInput.value = defaultPeriode();
+            }
+
+            setJatuhTempo();
+        });
+
+        if (periodeInput) {
+            periodeInput.addEventListener('change', () => {
+                setJatuhTempo();
+            });
+        }
+    }
+
     /* ─── Premium Custom Select Converter ─── */
     function convertSelect(select) {
         if (select.classList.contains('custom-select-hidden')) return;

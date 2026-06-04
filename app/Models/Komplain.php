@@ -19,6 +19,7 @@ class Komplain extends Model
         'id_penyewa',
         'jenis_komplain',
         'deskripsi',
+        'bukti_foto',
         'tanggal',
         'status_penanganan',
         'respon',

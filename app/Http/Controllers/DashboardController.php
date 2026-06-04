@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\LaporanBulananExport;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Maatwebsite\Excel\Facades\Excel;
 
 class DashboardController extends Controller
 {
@@ -83,6 +86,37 @@ class DashboardController extends Controller
             ->where('status', 'Belum Bayar')
             ->count();
 
+        $chartLabels = [];
+        $chartRevenue = [];
+        $chartOccupancy = [];
+
+        if ($role === 'pemilik') {
+            $totalRoomsForChart = $totalKamar;
+
+            for ($i = 5; $i >= 0; $i--) {
+                $month = Carbon::now()->subMonths($i)->startOfMonth();
+                $start = $month->copy()->startOfMonth()->toDateString();
+                $end = $month->copy()->endOfMonth()->toDateString();
+
+                $monthlyRevenue = DB::table('tagihan_pembayaran')
+                    ->where('status', 'Lunas')
+                    ->whereBetween('tanggal_bayar', [$start, $end])
+                    ->sum('nominal');
+
+                $paidTenants = DB::table('tagihan_pembayaran')
+                    ->where('status', 'Lunas')
+                    ->whereBetween('tanggal_bayar', [$start, $end])
+                    ->distinct('id_penyewa')
+                    ->count('id_penyewa');
+
+                $chartLabels[] = $month->format('M Y');
+                $chartRevenue[] = (float) $monthlyRevenue;
+                $chartOccupancy[] = $totalRoomsForChart > 0
+                    ? round(($paidTenants / $totalRoomsForChart) * 100, 2)
+                    : 0.0;
+            }
+        }
+
         return view('dashboard.index', [
             'user' => $user,
             'propertyCards' => $propertyCards,
@@ -97,6 +131,9 @@ class DashboardController extends Controller
             'tenantKomplainCount' => $tenantKomplainCount,
             'komplainAktif' => $komplainAktif,
             'pembayaranPending' => $pembayaranPending,
+            'chartLabels' => $chartLabels,
+            'chartRevenue' => $chartRevenue,
+            'chartOccupancy' => $chartOccupancy,
         ]);
     }
 
@@ -448,7 +485,7 @@ class DashboardController extends Controller
             $penyewaAktif = DB::table('penyewa')
                 ->leftJoin('kamar', 'kamar.id_kamar', '=', 'penyewa.id_kamar')
                 ->whereNull('penyewa.tanggal_selesai')
-                ->select('penyewa.id_penyewa', 'penyewa.nama', 'kamar.no_kamar', 'kamar.harga')
+                ->select('penyewa.id_penyewa', 'penyewa.nama', 'penyewa.tanggal_masuk', 'kamar.no_kamar', 'kamar.harga')
                 ->orderBy('penyewa.nama')
                 ->get();
         }
@@ -667,7 +704,13 @@ class DashboardController extends Controller
         $validated = $request->validate([
             'jenis_komplain' => ['required', 'string', 'max:100'],
             'deskripsi' => ['required', 'string'],
+            'bukti_foto' => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'max:2048'],
         ]);
+
+        $buktiPath = null;
+        if ($request->hasFile('bukti_foto')) {
+            $buktiPath = $request->file('bukti_foto')->store('komplain_bukti', 'public');
+        }
 
         // Tentukan id_penyewa
         if ($user['role'] === 'penyewa') {
@@ -682,6 +725,7 @@ class DashboardController extends Controller
             'id_penyewa' => $penyewaId,
             'jenis_komplain' => $validated['jenis_komplain'],
             'deskripsi' => $validated['deskripsi'],
+            'bukti_foto' => $buktiPath,
             'tanggal' => now()->toDateString(),
             'status_penanganan' => 'Diajukan',
         ]);
@@ -735,11 +779,14 @@ class DashboardController extends Controller
         $this->ensureOwner($request);
 
         $filterTahun = (string) $request->query('tahun', date('Y'));
+        $driver = DB::getDriverName();
+        $monthExpr = $driver === 'sqlite' ? "strftime('%Y-%m', tanggal_jatuh_tempo)" : "DATE_FORMAT(tanggal_jatuh_tempo, '%Y-%m')";
+        $yearExpr = $driver === 'sqlite' ? "strftime('%Y', tanggal_jatuh_tempo)" : "DATE_FORMAT(tanggal_jatuh_tempo, '%Y')";
 
         // Ringkasan per bulan
         $bulanan = DB::table('tagihan_pembayaran')
             ->selectRaw("
-                strftime('%Y-%m', tanggal_jatuh_tempo) as periode_bulan,
+                {$monthExpr} as periode_bulan,
                 COUNT(*) as total_tagihan,
                 SUM(CASE WHEN status = 'Lunas' THEN 1 ELSE 0 END) as jumlah_lunas,
                 SUM(CASE WHEN status = 'Belum Bayar' THEN 1 ELSE 0 END) as jumlah_belum,
@@ -747,14 +794,14 @@ class DashboardController extends Controller
                 SUM(CASE WHEN status = 'Lunas' THEN nominal ELSE 0 END) as pendapatan,
                 SUM(nominal) as total_nominal
             ")
-            ->whereRaw("strftime('%Y', tanggal_jatuh_tempo) = ?", [$filterTahun])
-            ->groupByRaw("strftime('%Y-%m', tanggal_jatuh_tempo)")
+            ->whereRaw("{$yearExpr} = ?", [$filterTahun])
+            ->groupByRaw($monthExpr)
             ->orderBy('periode_bulan')
             ->get();
 
         // Statistik keseluruhan tahun ini
         $statsQuery = DB::table('tagihan_pembayaran')
-            ->whereRaw("strftime('%Y', tanggal_jatuh_tempo) = ?", [$filterTahun]);
+            ->whereRaw("{$yearExpr} = ?", [$filterTahun]);
 
         $totalPendapatan = (clone $statsQuery)->where('status', 'Lunas')->sum('nominal');
         $totalTagihan = (clone $statsQuery)->count();
@@ -763,7 +810,7 @@ class DashboardController extends Controller
 
         // Tahun-tahun yang tersedia
         $tahunList = DB::table('tagihan_pembayaran')
-            ->selectRaw("DISTINCT strftime('%Y', tanggal_jatuh_tempo) as tahun")
+            ->selectRaw("DISTINCT {$yearExpr} as tahun")
             ->orderByDesc('tahun')
             ->pluck('tahun');
 
@@ -781,6 +828,16 @@ class DashboardController extends Controller
             'totalLunas' => $totalLunas,
             'totalBelum' => $totalBelum,
         ]);
+    }
+
+    public function exportLaporan(Request $request)
+    {
+        $this->ensureOwner($request);
+
+        $tahun = (string) $request->query('tahun', date('Y'));
+        $filename = 'laporan-keuangan-'.$tahun.'.xlsx';
+
+        return Excel::download(new LaporanBulananExport($tahun), $filename);
     }
 
     /* ────────────────────────────────────────────────────────────

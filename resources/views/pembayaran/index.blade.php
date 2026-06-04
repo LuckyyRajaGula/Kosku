@@ -62,7 +62,7 @@
                 <select id="id_penyewa" name="id_penyewa" required>
                     <option value="">-- Pilih Penyewa --</option>
                     @foreach ($penyewaAktif as $p)
-                        <option value="{{ $p->id_penyewa }}" {{ old('id_penyewa') == $p->id_penyewa ? 'selected' : '' }}>
+                        <option value="{{ $p->id_penyewa }}" data-harga="{{ $p->harga }}" data-tanggal-masuk="{{ $p->tanggal_masuk }}" {{ old('id_penyewa') == $p->id_penyewa ? 'selected' : '' }}>
                             {{ $p->nama }} ({{ $p->no_kamar ?: 'Tanpa Kamar' }})
                         </option>
                     @endforeach
